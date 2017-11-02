@@ -70,19 +70,17 @@ class Node(object):
         self_notnull = ~self.values.mask
         other_notnull = ~other.values.mask
         notnull = (self_notnull & other_notnull)
+
         if ~np.any(notnull):
             # if all attributes are different, then combine rules
-            matches = np.intersect1d(self.values, other.values)
+            matches = np.intersect1d(self.matches, other.matches)
+            if matches.size == 0:
+                return None
             child = Node(self.X, self.y, matches=matches)
             child.values.data[self_notnull] = self.values.data[self_notnull]
             child.values.data[other_notnull] = other.values.data[other_notnull]
-            child.values.mask = (self_notnull | other_notnull)
+            child.values.mask[(self_notnull | other_notnull)] = False
         return child
-
-    @property
-    @functools.lru_cache(maxsize=1)
-    def actual_occurrence(self):
-        return (self.matches.size / self.n_objs)
 
     @property
     @functools.lru_cache(maxsize=1)
@@ -92,12 +90,17 @@ class Node(object):
     @property
     @functools.lru_cache(maxsize=1)
     def confidence(self):
-        return (self.support / self.n_objs)
+        return np.max(self.counts) / self.actual_occurrence
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def actual_occurrence(self):
+        return self.matches.size
 
     @property
     @functools.lru_cache(maxsize=1)
     def support(self):
-        return np.max(self.counts)
+        return np.max(self.counts) / self.n_objs
 
 
 class MECRTree(object):
@@ -126,7 +129,7 @@ class MECRTree(object):
         for feat in np.arange(0, n_feats):
             values = np.unique(X[:, feat])
             for value in values:
-                matches = np.where(X[:, feat] == value)
+                matches = np.nonzero(X[:, feat] == value)[0]
                 c = Node(X, y, matches=matches)
                 c.values[feat] = value
                 n.children.append(c)
@@ -138,11 +141,14 @@ class MECRTree(object):
             # enumerate rules
             if l_i.confidence >= min_confidence:
                 notnan = ~l_i.values.mask
-                values = { self.feature_names[i]: l_i.values[i]
+                values = { str(self.feature_names[i]): l_i.values[i]
                             for i in range(0, len(l_i.values))
                             if notnan[i] }
                 rule = {
-                    "values": values,
+                    "values": {
+                        str(self.feature_names[i]): l_i.values[i]
+                        for i in range(0, len(l_i.values)) if notnan[i]
+                    },
                     "class": l_i.classification,
                     "confidence": l_i.confidence,
                     "support": l_i.support
@@ -154,7 +160,7 @@ class MECRTree(object):
                 if child is not None and (child.support >= min_support):
                     l_i.children.append(child)
 
-            self._mine(l_i, min_support, min_confidence)
+            rules.extend(self._mine(l_i, min_support, min_confidence))
         return rules
 
     def train(self, min_support, min_confidence):

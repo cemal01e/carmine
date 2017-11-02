@@ -51,9 +51,18 @@ class TestMECRTree(unittest.TestCase):
                 self.assertIn("feature ", feature)
 
     def test_train_rules(self):
-        m = carmine.MECRTree(X, y)
-        m.train(2, 0.3)  # TODO: replace this with supp/conf in paper
+        feature_names = ["feature 1", "feature 2", "feature 3"]
+        m = carmine.MECRTree(X, y, feature_names=feature_names)
+        m.train(0.25, 0.6)
         self.assertIsNotNone(m.rules)
+        self.assertGreater(len(m.rules), 0)
+
+    def test_multiple_conditions_in_rule(self):
+        feature_names = ["feature 1", "feature 2", "feature 3"]
+        m = carmine.MECRTree(X, y, feature_names=feature_names)
+        m.train(0.25, 0.6)
+        max_conditions = max([len(rule["values"]) for rule in m.rules])
+        self.assertGreater(max_conditions, 1)
 
 
 if __name__ == "__main__":
