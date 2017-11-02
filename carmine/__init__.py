@@ -1,66 +1,114 @@
+import functools
 import numpy as np
+
+## start test dataset
+
+dataset = np.array([
+    [ 1, 1, 1, 1 ],
+    [ 1, 2, 1, 0 ],
+    [ 2, 2, 1, 0 ],
+    [ 3, 3, 1, 1 ],
+    [ 3, 1, 2, 0 ],
+    [ 3, 3, 1, 1 ],
+    [ 1, 3, 2, 1 ],
+    [ 2, 2, 2, 0 ]
+])
+
+X = dataset[:,:-1]
+y = dataset[:,-1]
+
+### end test dataset
 
 
 class Node(object):
-    """
-    Implementation for the "Equivalence Class Rule" algorithm for mining class
-    association rules. This is a technique for discovering classification rules
-    for categorical data, derived from the simple counting approaches in Market
-    Basket Analysis.
+    def __init__(self, X, y, matches=None):
+        # compute number of objects and features in dataset
+        self.n_objs = X.shape[0]
+        self.n_feats = X.shape[1]
 
-    Recommended reading:
-        1.) "A Novel Classification Algorithm Based on Association Rule Mining"
-            Vo, Le. (Pacific Rim Knowledge Acquisition Workshop, 2008).
-            DOI: http://dx.doi.org/10.1007/978-3-642-01715-5_6
-        2.) "An efficient algorithm for mining class-association rules"
-            Nguyen, Vo, Hong, Thanh. (Expert Systems with Applications, 2013).
-            DOI: http://dx.doi.org/10.1016/j.eswa.2012.10.035
+        # compute matching object indices and values
+        if matches is None:
+            self.matches = np.arange(0, self.n_objs)
+        else:
+            self.matches = matches
 
-    Args:
-        n_classes (int): The number of classes to distinguish between.
+        self.values = np.full(
+            shape=self.n_feats,
+            fill_value=np.nan,
+            dtype="int"
+        )
 
-    Attributes:
-        attrs (:obj:`numpy.array`): Array showing which features are used.
-        values (:obj:`numpy.array`): ???
-        counts (:obj:`numpy.array`): A count of objects which match each class.
-        matches (:obj:`numpy.array`): A set of object IDs ("obidset")
-        children (:obj:`list`): A list of this node's children in the tree.
-    """
-    def __init__(self, n_classes=2):
-        self.attrs = np.zeros(shape=n_classes, dtype="bool")
-        self.values = np.zeros(shape=n_classes, dtype="int")
-        self.counts = np.zeros(shape=n_classes, dtype="int")
-        self.matches = np.zeros(shape=n_classes, dtype="int")
+        # compute classes and counts
+        _, counts = np.unique(y[self.matches], return_counts=True)
+        self.n_classes = np.unique(y).size
+        self.counts = counts
+
+        # children for tree node
         self.children = []
 
     @property
-    def classification(self):  # "pos" in paper
+    @functools.lru_cache(maxsize=1)
+    def actual_occurrence(self):
+        return (self.matches.size / self.n_objs)
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def classification(self):
         return np.argmax(self.counts)
 
     @property
+    @functools.lru_cache(maxsize=1)
+    def confidence(self):
+        return (self.support / self.n_objs)
+
+    @property
+    @functools.lru_cache(maxsize=1)
     def support(self):
         return np.max(self.counts)
 
 
-def carmine(root, min_support, min_confidence):
-    rules = set()
-    for i, l_i in enumerate(root.children):
-        p_i = set()
-        for j, l_j in enumerate(root.children[i + 1:]):
-            if not np.array_equal(l_i.attrs, l_j.attrs):
-                o = Node(n_classes=root.n_classes)
-                o.values = np.union1d(l_i.values, l_j.values)
-                o.matches = np.intersect1d(l_i.matches, l_j.matches)
+def carmine(node, min_support, min_confidence):
+    rules = []
+    for i, l_i in enumerate(node.children):
+        # enumerate rules
+        if l_i.confidence >= min_confidence:
+            rule = {
+                "values": l_i.values,
+                "class": l_i.classification,
+                "confidence": l_i.confidence,
+                "support": l_i.support
+            }
+            rules.append(rule)
 
-                if o.matches.size == l_i.matches.size:
-                    o.counts = l_i.counts
-                elif o.matches.size == l_j.matches.size:
-                    o.counts = l_j.counts
-                else:
-                    # TODO: count implementation
-                    o.counts = None
+        for l_j in node.children[i+1:]:
+            l_i_nn = ~np.isnan(l_i.values)
+            l_j_nn = ~np.isnan(l_j.values)
+            nn = (l_i_nn & l_j_nn)
+            if ~np.any(nn):
+                # if different attributes, combine rules
+                matches = np.intersect1d(l_i.values, l_j.values)
+                o = Node(X, y, matches=matches)
+                o.values[l_i_nn] = l_i[l_i_nn]
+                o.values[l_j_nn] = l_j[l_j_nn]
 
-                if o.classification >= min_support:
-                    p_i.add(o)
+                if o.support >= min_support:
+                    l_i.children.append(o)
 
+        carmine(l_i, min_support, min_confidence)
     return rules
+
+
+def construct_root_node(X, y):
+    n = Node(X, y)
+    n_feats = X.shape[1]
+    for feat in np.arange(0, n_feats):
+        values = np.unique(X[:, feat])
+        for value in values:
+            matches = np.where(X[:, feat] == value)
+            c = Node(X, y, matches=matches)
+            c.values[feat] = value
+            n.children.append(c)
+    return n
+
+n = construct_root_node(X, y)
+rules = carmine(n, 1, 0.3)
