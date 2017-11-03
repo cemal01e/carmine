@@ -7,3 +7,4 @@ install:
   - pip install -r requirements.txt
 script:
   - pytest
+  - nosetests --with-coverage --cover-min-percentage=90 --cover-package=.
