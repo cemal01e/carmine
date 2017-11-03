@@ -18,6 +18,26 @@ Author:
     Charles Newey <charlie.newey@flightdataservices.com>, 2017
 """
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
+
+
+class CategoricalDataTransformer(object):
+    def __init__(self, X, y):
+        self.X = X
+        self.y = y
+
+        self.n_objs = X.shape[0]
+        self.n_features = X.shape[1]
+        self.encoders = [LabelEncoder() for i in range(0, self.n_features)]
+
+    def encode(self):
+        X = self.X
+        for i in range(0, self.n_features):
+            X[:, i] = self.encoders[i].fit_transform(self.X[:, i])
+        return X
+
+    def decode(self, feature_index, feature_values):
+        return self.encoders[feature_index].inverse_transform(feature_values)
 
 
 class Node(object):
@@ -75,7 +95,10 @@ class Node(object):
         attrs_same_vals = np.any(self.values[shared] == other.values[shared])
         if no_shared_attrs or attrs_same_vals:
             matches = np.intersect1d(self.matches, other.matches)
-            if matches.size > 0:
+            # make sure child doesn't just match the same objects as parent
+            matches_parents = (len(matches) == len(self.matches) or
+                len(matches) == len(other.matches))
+            if matches.size > 0 and not matches_parents:
                 child = Node(self.X, self.y, matches=matches)
                 child.values.data[self_nn] = self.values.data[self_nn]
                 child.values.data[other_nn] = other.values.data[other_nn]
@@ -108,7 +131,8 @@ class MECRTree(object):
     [1]: http://dx.doi.org/10.1016/j.eswa.2012.10.035
     """
     def __init__(self, X, y, feature_names=None):
-        self.X = X
+        self.transformer = CategoricalDataTransformer(X, y)
+        self.X = self.transformer.encode()
         self.y = y
         if feature_names is not None:
             self.feature_names = feature_names
@@ -142,11 +166,13 @@ class MECRTree(object):
             node = queue.pop()
             for i, l_i in enumerate(node.children):
                 # enumerate rules
-                if l_i.confidence >= min_confidence:
+                if (len(l_i.children) == 0 and
+                        (l_i.confidence >= min_confidence)):
                     notnan = ~l_i.values.mask
                     rule = {
                         "values": {
-                            str(self.feature_names[i]): l_i.values[i]
+                            str(self.feature_names[i]):
+                            self.transformer.decode(i, l_i.values[i])
                             for i in range(0, len(l_i.values)) if notnan[i]
                         },
                         "class": l_i.classification,
@@ -161,7 +187,6 @@ class MECRTree(object):
                         l_i.children.append(child)
                 queue.append(l_i)
         return rules
-
 
     def train(self, min_support, min_confidence):
         """
