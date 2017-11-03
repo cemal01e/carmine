@@ -65,18 +65,23 @@ class Node(object):
         self.children = []
 
     def create_child(self, other):
-        child = None
-        self_notnull = ~self.values.mask
-        other_notnull = ~other.values.mask
-        notnull = (self_notnull & other_notnull)
-        matches = np.intersect1d(self.matches, other.matches)
-        if ~np.any(notnull) and matches.size != 0:
-            # if all attributes are different, then combine rules
-            child = Node(self.X, self.y, matches=matches)
-            child.values.data[self_notnull] = self.values.data[self_notnull]
-            child.values.data[other_notnull] = other.values.data[other_notnull]
-            child.values.mask[(self_notnull | other_notnull)] = False
-        return child
+        self_nn = ~self.values.mask
+        other_nn = ~other.values.mask
+        shared = (self_nn & other_nn)
+
+        # if parents don't share attributes, combine rules
+        no_shared_attrs = ~np.any(shared)
+        # if parents share attributes but have the same values, combine
+        attrs_same_vals = np.any(self.values[shared] == other.values[shared])
+        if no_shared_attrs or attrs_same_vals:
+            matches = np.intersect1d(self.matches, other.matches)
+            if matches.size > 0:
+                child = Node(self.X, self.y, matches=matches)
+                child.values.data[self_nn] = self.values.data[self_nn]
+                child.values.data[other_nn] = other.values.data[other_nn]
+                child.values.mask[(self_nn | other_nn)] = False
+                return child
+        return None
 
     @property
     def classification(self):
