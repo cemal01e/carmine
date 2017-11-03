@@ -134,33 +134,34 @@ class MECRTree(object):
                     n.children.append(c)
         return n
 
-    def _mine(self, node, min_support, min_confidence):
+    def _mine(self, root, min_support, min_confidence):
         rules = []
-        for i, l_i in enumerate(node.children):
-            # enumerate rules
-            if l_i.confidence >= min_confidence:
-                notnan = ~l_i.values.mask
-                values = { str(self.feature_names[i]): l_i.values[i]
-                            for i in range(0, len(l_i.values))
-                            if notnan[i] }
-                rule = {
-                    "values": {
-                        str(self.feature_names[i]): l_i.values[i]
-                        for i in range(0, len(l_i.values)) if notnan[i]
-                    },
-                    "class": l_i.classification,
-                    "confidence": l_i.confidence,
-                    "support": l_i.support
-                }
-                rules.append(rule)
 
-            for l_j in node.children[i+1:]:
-                child = l_i.create_child(l_j)
-                if child is not None and (child.support >= min_support):
-                    l_i.children.append(child)
+        queue = [root]
+        while len(queue) > 0:
+            node = queue.pop()
+            for i, l_i in enumerate(node.children):
+                # enumerate rules
+                if l_i.confidence >= min_confidence:
+                    notnan = ~l_i.values.mask
+                    rule = {
+                        "values": {
+                            str(self.feature_names[i]): l_i.values[i]
+                            for i in range(0, len(l_i.values)) if notnan[i]
+                        },
+                        "class": l_i.classification,
+                        "confidence": l_i.confidence,
+                        "support": l_i.support
+                    }
+                    rules.append(rule)
 
-            rules.extend(self._mine(l_i, min_support, min_confidence))
+                for l_j in node.children[i+1:]:
+                    child = l_i.create_child(l_j)
+                    if child is not None:
+                        l_i.children.append(child)
+                queue.append(l_i)
         return rules
+
 
     def train(self, min_support, min_confidence):
         """
@@ -189,4 +190,4 @@ class MECRTree(object):
         Returns:
             list: A list of rules with class labels matching target_class.
         """
-        return [rule for rule in rules if rule["class"] == target_class]
+        return [rule for rule in self.rules if rule["class"] == target_class]
