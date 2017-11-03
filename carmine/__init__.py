@@ -70,12 +70,9 @@ class Node(object):
         self_notnull = ~self.values.mask
         other_notnull = ~other.values.mask
         notnull = (self_notnull & other_notnull)
-
-        if ~np.any(notnull):
+        matches = np.intersect1d(self.matches, other.matches)
+        if ~np.any(notnull) and matches.size != 0:
             # if all attributes are different, then combine rules
-            matches = np.intersect1d(self.matches, other.matches)
-            if matches.size == 0:
-                return None
             child = Node(self.X, self.y, matches=matches)
             child.values.data[self_notnull] = self.values.data[self_notnull]
             child.values.data[other_notnull] = other.values.data[other_notnull]
@@ -111,16 +108,17 @@ class MECRTree(object):
     [1]: http://dx.doi.org/10.1016/j.eswa.2012.10.035
     """
     def __init__(self, X, y, feature_names=None):
-        self.root = self._construct_root_node(X, y)
-
+        self.X = X
+        self.y = y
         if feature_names is not None:
             self.feature_names = feature_names
         else:
-            self.feature_names = np.arange(0, self.root.n_feats)
+            n_features = self.X.shape[1]
+            self.feature_names = np.arange(0, n_features)
 
         self.rules = None
 
-    def _construct_root_node(self, X, y):
+    def _construct_root_node(self, X, y, min_support):
         """
         Generate a root node with all 1-itemsets, extracted from data.
         """
@@ -132,7 +130,8 @@ class MECRTree(object):
                 matches = np.nonzero(X[:, feat] == value)[0]
                 c = Node(X, y, matches=matches)
                 c.values[feat] = value
-                n.children.append(c)
+                if c.support >= min_support:
+                    n.children.append(c)
         return n
 
     def _mine(self, node, min_support, min_confidence):
@@ -164,4 +163,5 @@ class MECRTree(object):
         return rules
 
     def train(self, min_support, min_confidence):
+        self.root = self._construct_root_node(self.X, self.y, min_support)
         self.rules = self._mine(self.root, min_support, min_confidence)
