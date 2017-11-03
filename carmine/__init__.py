@@ -157,7 +157,7 @@ class MECRTree(object):
 
                 for l_j in node.children[i+1:]:
                     child = l_i.create_child(l_j)
-                    if child is not None:
+                    if child is not None and child.support >= min_support:
                         l_i.children.append(child)
                 queue.append(l_i)
         return rules
