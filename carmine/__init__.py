@@ -163,5 +163,30 @@ class MECRTree(object):
         return rules
 
     def train(self, min_support, min_confidence):
+        """
+        Train the MECR tree by mining and filtering rules according to minimum
+        support and confidence criteria.
+
+        For a gentle introduction to market basket analysis concepts (including
+        mathematical definitions of support and confidence, etc), refer to
+        [this post on Medium][1].
+
+        [1]: https://goo.gl/n3VzB7
+
+        Arguments:
+            min_support (float): Minimum support for rules.
+            min_confidence (float): Minimum confidence for rules.
+        """
         self.root = self._construct_root_node(self.X, self.y, min_support)
         self.rules = self._mine(self.root, min_support, min_confidence)
+
+    def get_classification_rules(self, target_class):
+        """
+        Return classification rules for a particular target class.
+
+        Arguments:
+            target_class: The target class to extract rules for.
+        Returns:
+            list: A list of rules with class labels matching target_class.
+        """
+        return [rule for rule in rules if rule["class"] == target_class]
