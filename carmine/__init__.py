@@ -17,7 +17,6 @@ Recommended reading:
 Author:
     Charles Newey <charlie.newey@flightdataservices.com>, 2017
 """
-import functools
 import numpy as np
 
 
@@ -80,22 +79,18 @@ class Node(object):
         return child
 
     @property
-    @functools.lru_cache(maxsize=1)
     def classification(self):
         return np.argmax(self.counts)
 
     @property
-    @functools.lru_cache(maxsize=1)
     def confidence(self):
         return np.max(self.counts) / self.actual_occurrence
 
     @property
-    @functools.lru_cache(maxsize=1)
     def actual_occurrence(self):
         return self.matches.size
 
     @property
-    @functools.lru_cache(maxsize=1)
     def support(self):
         return np.max(self.counts) / self.n_objs
 
