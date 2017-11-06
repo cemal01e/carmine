@@ -8,3 +8,5 @@ install:
 script:
   - pytest
   - nosetests --with-coverage --cover-min-percentage=90 --cover-package=.
+notifications:
+  slack: flightdataserviceshq:ScANJhEWj56ini6frB0dUScs
