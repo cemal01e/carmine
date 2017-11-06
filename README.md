@@ -39,6 +39,7 @@ high-quality decision rules.
 1.) "A Novel Classification Algorithm Based on Association Rule Mining"
     Vo, Le. (Pacific Rim Knowledge Acquisition Workshop, 2008).
     DOI: http://dx.doi.org/10.1007/978-3-642-01715-5_6
+
 2.) "An Efficient Algorithm for Mining Class-Association Rules"
     Nguyen, Vo, Hong, Thanh. (Expert Systems with Applications, 2013).
     DOI: http://dx.doi.org/10.1016/j.eswa.2012.10.035
