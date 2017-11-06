@@ -22,14 +22,14 @@ y = dataset[:,-1]  # class labels
 
 class TestNode(unittest.TestCase):
     def test_create_match_all_node(self):
-        n = carmine.Node(X, y, matches=None)
+        n = carmine.mecr.Node(X, y, matches=None)
 
     def test_create_partial_match_node(self):
-        n = carmine.Node(X, y, matches=[1])
+        n = carmine.mecr.Node(X, y, matches=[1])
 
     def test_create_child(self):
-        i = carmine.Node(X, y, matches=[3, 4, 5])
-        j = carmine.Node(X, y, matches=[1, 2, 3])
+        i = carmine.mecr.Node(X, y, matches=[3, 4, 5])
+        j = carmine.mecr.Node(X, y, matches=[1, 2, 3])
         child = i.create_child(j)
         self.assertIsNotNone(child)
         self.assertGreater(len(child.matches), 0)
