@@ -63,8 +63,7 @@ class Node(object):
         self.y = y
 
         # compute number of objects and features in dataset
-        self.n_objs = X.shape[0]
-        self.n_feats = X.shape[1]
+        self.n_objs, self.n_feats = X.shape
 
         # compute matching object indices and values
         if matches is None:
@@ -77,33 +76,41 @@ class Node(object):
         self.values.mask = True
 
         # compute classes and counts
-        _, counts = np.unique(y[list(self.matches)], return_counts=True)
-        self.n_classes = np.unique(y).size
-        self.counts = counts
+        self.n_classes, self.counts = np.unique(
+            y[list(self.matches)],
+            return_counts=True
+        )
 
         # children for tree node
         self.children = []
 
     def create_child(self, other):
+        def _make_child(node, node_nn, other, other_nn):
+            # make sure child doesn't just match the same objects as parent
+            matches = node.matches & other.matches
+            matches_parents = (len(matches) == len(self.matches) or
+                               len(matches) == len(other.matches))
+            if len(matches) > 0 and not matches_parents:
+                child = Node(node.X, node.y, matches=matches)
+                child.values.data[node_nn] = node.values.data[node_nn]
+                child.values.data[other_nn] = other.values.data[other_nn]
+                child.values.mask[(node_nn | other_nn)] = False
+                return child
+
         self_nn = ~self.values.mask
         other_nn = ~other.values.mask
         shared = (self_nn & other_nn)
 
         # if parents don't share attributes, combine rules
         no_shared_attrs = ~np.any(shared)
+        if no_shared_attrs:
+            return _make_child(self, self_nn, other, other_nn)
+
         # if parents share attributes but have the same values, combine
         attrs_same_vals = np.any(self.values[shared] == other.values[shared])
-        if no_shared_attrs or attrs_same_vals:
-            # make sure child doesn't just match the same objects as parent
-            matches = self.matches & other.matches
-            matches_parents = (len(matches) == len(self.matches) or
-                               len(matches) == len(other.matches))
-            if len(matches) > 0 and not matches_parents:
-                child = Node(self.X, self.y, matches=matches)
-                child.values.data[self_nn] = self.values.data[self_nn]
-                child.values.data[other_nn] = other.values.data[other_nn]
-                child.values.mask[(self_nn | other_nn)] = False
-                return child
+        if attrs_same_vals:
+            return _make_child(self, self_nn, other, other_nn)
+
         return None
 
     @property
