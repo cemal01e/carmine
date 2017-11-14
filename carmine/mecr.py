@@ -18,6 +18,7 @@ Author:
     Charles Newey <charlie.newey@flightdataservices.com>, 2017
 """
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -92,8 +93,10 @@ class Node(object):
                                len(matches) == len(other.matches))
             if len(matches) > 0 and not matches_parents:
                 child = Node(node.X, node.y, matches=matches)
-                child.values.data[node_nn] = node.values.data[node_nn]
-                child.values.data[other_nn] = other.values.data[other_nn]
+                child.values.data[node_nn] = np.compress(node_nn,
+                                                         node.values.data)
+                child.values.data[other_nn] = np.compress(other_nn,
+                                                          other.values.data)
                 child.values.mask[(node_nn | other_nn)] = False
                 return child
 
@@ -107,7 +110,8 @@ class Node(object):
             return _make_child(self, self_nn, other, other_nn)
 
         # if parents share attributes but have the same values, combine
-        attrs_same_vals = np.any(self.values[shared] == other.values[shared])
+        attrs_same_vals = np.any(np.compress(shared, self.values) ==
+                                 np.compress(shared, other.values))
         if attrs_same_vals:
             return _make_child(self, self_nn, other, other_nn)
 
@@ -156,7 +160,7 @@ class MECRTree(object):
         n = Node(X, y)
         n_feats = X.shape[1]
         for feat in np.arange(0, n_feats):
-            values = np.unique(X[:, feat])
+            values = pd.unique(X[:, feat])
             for value in values:
                 matches = np.nonzero(X[:, feat] == value)[0]
                 c = Node(X, y, matches=matches)
