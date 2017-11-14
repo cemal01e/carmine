@@ -68,16 +68,16 @@ class Node(object):
 
         # compute matching object indices and values
         if matches is None:
-            self.matches = np.arange(0, self.n_objs)
+            self.matches = set(np.arange(0, self.n_objs, dtype="int32"))
         else:
-            self.matches = matches
+            self.matches = set(matches)
 
         # create masked array to hold class values
-        self.values = np.ma.zeros(shape=self.n_feats, dtype="int")
+        self.values = np.ma.zeros(shape=self.n_feats, dtype="int32")
         self.values.mask = True
 
         # compute classes and counts
-        _, counts = np.unique(y[self.matches], return_counts=True)
+        _, counts = np.unique(y[list(self.matches)], return_counts=True)
         self.n_classes = np.unique(y).size
         self.counts = counts
 
@@ -94,11 +94,11 @@ class Node(object):
         # if parents share attributes but have the same values, combine
         attrs_same_vals = np.any(self.values[shared] == other.values[shared])
         if no_shared_attrs or attrs_same_vals:
-            matches = np.intersect1d(self.matches, other.matches)
             # make sure child doesn't just match the same objects as parent
+            matches = self.matches & other.matches
             matches_parents = (len(matches) == len(self.matches) or
-                len(matches) == len(other.matches))
-            if matches.size > 0 and not matches_parents:
+                               len(matches) == len(other.matches))
+            if len(matches) > 0 and not matches_parents:
                 child = Node(self.X, self.y, matches=matches)
                 child.values.data[self_nn] = self.values.data[self_nn]
                 child.values.data[other_nn] = other.values.data[other_nn]
@@ -116,7 +116,7 @@ class Node(object):
 
     @property
     def actual_occurrence(self):
-        return self.matches.size
+        return len(self.matches)
 
     @property
     def support(self):

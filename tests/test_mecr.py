@@ -6,18 +6,18 @@ from .context import carmine
 # verification dataset from paper below
 # DOI: http://dx.doi.org/10.1016/j.eswa.2012.10.035
 dataset = np.array([
-    [ 1, 1, 1, 1 ],
-    [ 1, 2, 1, 0 ],
-    [ 2, 2, 1, 0 ],
-    [ 3, 3, 1, 1 ],
-    [ 3, 1, 2, 0 ],
-    [ 3, 3, 1, 1 ],
-    [ 1, 3, 2, 1 ],
-    [ 2, 2, 2, 0 ]
+    [1, 1, 1, 1],
+    [1, 2, 1, 0],
+    [2, 2, 1, 0],
+    [3, 3, 1, 1],
+    [3, 1, 2, 0],
+    [3, 3, 1, 1],
+    [1, 3, 2, 1],
+    [2, 2, 2, 0]
 ])
 
-X = dataset[:,:-1]  # attributes / features
-y = dataset[:,-1]  # class labels
+X = dataset[:, :-1]  # attributes / features
+y = dataset[:, -1]  # class labels
 
 
 class TestNode(unittest.TestCase):
@@ -33,7 +33,7 @@ class TestNode(unittest.TestCase):
         child = i.create_child(j)
         self.assertIsNotNone(child)
         self.assertGreater(len(child.matches), 0)
-        self.assertEqual(child.matches[0], 3)
+        self.assertEqual(sorted(child.matches)[0], 3)
 
 
 class TestMECRTree(unittest.TestCase):
@@ -45,7 +45,7 @@ class TestMECRTree(unittest.TestCase):
     def test_match_all_objects_with_zero_support(self):
         m = carmine.MECRTree(X, y)
         n = m._construct_root_node(X, y, min_support=0.0)
-        self.assertEqual(n.matches.size, y.size)
+        self.assertEqual(len(n.matches), y.size)
 
     def test_train_rules(self):
         feature_names = ["feature 1", "feature 2", "feature 3"]
