@@ -1,12 +1,14 @@
 language: python
 python:
-  - "3.4"
-  - "3.5"
-  - "3.6"
+- '3.4'
+- '3.5'
+- '3.6'
 install:
-  - pip install -r requirements.txt
+- pip install -r requirements.txt
 script:
-  - pytest
-  - nosetests --with-coverage --cover-min-percentage=90 --cover-package=.
+- pytest
+- nosetests --with-coverage --cover-min-percentage=90 --cover-package=.
 notifications:
-  slack: flightdataserviceshq:ScANJhEWj56ini6frB0dUScs
+  slack:
+    rooms:
+      secure: pdJgU+L1Sw+JgGz7Zn44T9vPemYs6K2vnYkcn8PfAI+Qc6pjRuDdqqF+vhoe4NcP7OlsXj/Hb1oTnV96D3EgyMTuXOL50k/Qy6JnCb/1iqgIu51YVnBiLbyMOcBIxLJCO8PU68tgqHYKusJUUVJfehBJZtoOliMXHpkFX55dtzSK2qL1xyvHVbRW3DAvq/kjJzto11zd1vzRP/9MACgEYc9wtC2J8BuQi0cfDekoTCQI1xyrHFJWEyoQnH5B4OYk5Y5WGP9ZGCgXCCXziITfpS95c/V9KwXjaW9X3TNrm4t432070qU5YfIF0je0Zd4T1grja/qiVZrjJIiMR8V3906SXX7+1Dp6nr123a63INwMcJiRVYwNGdxXd0mC/WYqhjXgnzd/AFyA2St4JDf3T2m4eGV3QYPQB5sY5sKm/43BW0TvNaf6UOTEF0iFigB0z/HYLsIbEqgHEESJCip1vZnb9P4NVVCWfLQ3jwYwXY+xBLAs0Psj2logybsBip8RgbuC+uTp2sP5VANpyDMVaGu8mCpazyEUTsL1pscrDcJcTNc2fPEgcQfKM+bOY2NsmhGPZE/GN6shcVny0huAS+I6QrMqwo+pt5fpGhX67Me+EELwexBT+XNDh2OVvpkIpVHS2G3c0BwHGb6Rig9BLQ/0ZVwDhHwIvmgATiAdvso=
