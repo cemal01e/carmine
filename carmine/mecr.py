@@ -77,10 +77,11 @@ class Node(object):
         self.values.mask = True
 
         # compute classes and counts
-        self.n_classes, self.counts = np.unique(
+        s = pd.value_counts(
             y[list(self.matches)],
-            return_counts=True
-        )
+            sort=False
+        ).sort_index()
+        self.n_classes, self.counts = s.index.size, s.values
 
         # children for tree node
         self.children = []
