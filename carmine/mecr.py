@@ -18,8 +18,8 @@ Author:
     Charles Newey <charlie.newey@flightdataservices.com>, 2017
 """
 import numpy as np
-import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+from carmine.algorithms import unique1d as uniq
 
 
 class CategoricalDataTransformer(object):
@@ -77,10 +77,7 @@ class Node(object):
         self.values.mask = True
 
         # compute classes and counts
-        self.n_classes, self.counts = np.unique(
-            y[list(self.matches)],
-            return_counts=True
-        )
+        self.n_classes, self.counts = uniq(y[list(self.matches)])
 
         # children for tree node
         self.children = []
@@ -149,7 +146,7 @@ class MECRTree(object):
             self.feature_names = feature_names
         else:
             n_features = self.X.shape[1]
-            self.feature_names = np.arange(0, n_features)
+            self.feature_names = np.arange(0, n_features, dtype="int32")
 
         self.rules = None
 
@@ -159,8 +156,8 @@ class MECRTree(object):
         """
         n = Node(X, y)
         n_feats = X.shape[1]
-        for feat in np.arange(0, n_feats):
-            values = pd.unique(X[:, feat])
+        for feat in np.arange(0, n_feats, dtype="int32"):
+            values = uniq(X[:, feat])[1]
             for value in values:
                 matches = np.nonzero(X[:, feat] == value)[0]
                 c = Node(X, y, matches=matches)
