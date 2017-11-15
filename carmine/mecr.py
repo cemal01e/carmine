@@ -87,19 +87,17 @@ class Node(object):
         self.children = []
 
     def create_child(self, other):
-        def _make_child(node, node_nn, other, other_nn):
+        def _make_child(n, n_nn, o, o_nn):
             # make sure child doesn't just match the same objects as parent
-            matches = node.matches & other.matches
+            matches = n.matches & o.matches
             matches_parents = (len(matches) == len(self.matches) or
                                len(matches) == len(other.matches))
             if len(matches) > 0 and not matches_parents:
-                child = Node(node.X, node.y, matches=matches)
-                child.values.data[node_nn] = np.compress(node_nn,
-                                                         node.values.data)
-                child.values.data[other_nn] = np.compress(other_nn,
-                                                          other.values.data)
-                child.values.mask[(node_nn | other_nn)] = False
-                return child
+                c = Node(n.X, n.y, matches=matches)
+                c.values.data[n_nn] = np.compress(n_nn, n.values.data)
+                c.values.data[o_nn] = np.compress(o_nn, o.values.data)
+                c.values.mask[(n_nn | o_nn)] = False
+                return c
 
         self_nn = ~self.values.mask
         other_nn = ~other.values.mask
