@@ -227,7 +227,7 @@ class MECRTree(object):
         """
         return [rule for rule in self.rules if rule["class"] == target_class]
 
-    def get_rule_table(self):
+    def get_rule_table(self, target_class=None):
         """
         Return a nice HTML representation of all mined association rules.
 
@@ -254,7 +254,9 @@ class MECRTree(object):
             rule["conditions"] = " and ".join(conditions)
 
             # add rule to list
-            pretty_rules.append(rule)
+            if (target_class is None or
+                    rule["class"] == target_class):
+                pretty_rules.append(rule)
 
         field_names = pretty_rules[0].keys()
         tbl = prettytable.PrettyTable(field_names=field_names)
