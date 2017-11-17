@@ -19,6 +19,7 @@ Author:
 """
 import numpy as np
 import pandas as pd
+import prettytable
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -226,3 +227,34 @@ class MECRTree(object):
             list: A list of rules with class labels matching target_class.
         """
         return [rule for rule in self.rules if rule["class"] == target_class]
+
+    def get_rule_table(self):
+        """
+        Return a nice HTML representation of all mined association rules.
+
+        Returns:
+            html: An HTML table containing all rules.
+        """
+        # build nice representation of rules
+        max_score = max([r["score"] for r in self.rules])
+        pretty_rules = []
+        for rule in self.rules:
+            # express score as proportion of maximum
+            rule["score"] = rule["score"] / max_score
+
+            # express rules in string representation
+            conditions = []
+            for k, v in rule["values"].items():
+                conditions.append("{k} is {v}".format(k=k, v=v))
+
+            rule["conditions"] = " and ".join(conditions)
+
+            pretty_rules.append(rule)
+
+        field_names = pretty_rules[0].keys()
+        tbl = prettytable.PrettyTable(field_names=field_names)
+        for rule in pretty_rules:
+            tbl.add_row(rule.values())
+        html = tbl.get_html_string()
+
+        return html
