@@ -237,7 +237,10 @@ class MECRTree(object):
         import prettytable
 
         # build nice representation of rules
+        for r in self.rules:
+            r["score"] = r["confidence"] * r["support"]
         max_score = max([r["score"] for r in self.rules])
+
         pretty_rules = []
         for rule in self.rules:
             # express score as proportion of maximum
@@ -247,9 +250,9 @@ class MECRTree(object):
             conditions = []
             for k, v in rule["values"].items():
                 conditions.append("{k} is {v}".format(k=k, v=v))
-
             rule["conditions"] = " and ".join(conditions)
 
+            # add rule to list
             pretty_rules.append(rule)
 
         field_names = pretty_rules[0].keys()
