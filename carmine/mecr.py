@@ -237,8 +237,9 @@ class MECRTree(object):
         import prettytable
 
         # build nice representation of rules
-        for r in self.rules:
-            r["score"] = r["confidence"] * r["support"]
+        for i in range(len(self.rules)):
+            r = self.rules[i]
+            self.rules[i]["score"] = r["confidence"] * r["support"]
         max_score = max([r["score"] for r in self.rules])
 
         pretty_rules = []
