@@ -19,7 +19,6 @@ Author:
 """
 import numpy as np
 import pandas as pd
-import prettytable
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -235,6 +234,8 @@ class MECRTree(object):
         Returns:
             html: An HTML table containing all rules.
         """
+        import prettytable
+
         # build nice representation of rules
         max_score = max([r["score"] for r in self.rules])
         pretty_rules = []
