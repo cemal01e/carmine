@@ -258,6 +258,12 @@ class MECRTree(object):
                     rule["class"] == target_class):
                 pretty_rules.append(rule)
 
+        pretty_rules = sorted(
+            pretty_rules,
+            key=lambda x: x["score"],
+            reverse=True
+        )
+
         field_names = pretty_rules[0].keys()
         tbl = prettytable.PrettyTable(field_names=field_names)
         for rule in pretty_rules:
