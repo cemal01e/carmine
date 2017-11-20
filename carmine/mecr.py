@@ -26,7 +26,6 @@ class CategoricalDataTransformer(object):
     def __init__(self, X, y):
         self.X = X
         self.y = y
-
         self.n_objs = X.shape[0]
         self.n_features = X.shape[1]
         self.encoders = [LabelEncoder() for i in range(0, self.n_features)]
@@ -170,7 +169,6 @@ class MECRTree(object):
 
     def _mine(self, root, min_support, min_confidence):
         rules = []
-
         queue = [root]
         while len(queue) > 0:
             node = queue.pop()
@@ -187,15 +185,16 @@ class MECRTree(object):
                         },
                         "class": l_i.classification,
                         "confidence": l_i.confidence,
+                        "score": l_i.confidence * l_i.support,
                         "support": l_i.support
                     }
                     rules.append(rule)
-
                 for l_j in node.children[i+1:]:
                     child = l_i.create_child(l_j)
                     if child is not None and child.support >= min_support:
                         l_i.children.append(child)
                 queue.append(l_i)
+        rules = sorted(rules, key=lambda x: x["score"], reverse=True)
         return rules
 
     def train(self, min_support, min_confidence):
@@ -227,7 +226,7 @@ class MECRTree(object):
         """
         return [rule for rule in self.rules if rule["class"] == target_class]
 
-    def get_rule_table(self, target_class=None):
+    def get_rule_table(self, filter_func=None):
         """
         Return a nice HTML representation of all mined association rules.
 
@@ -237,37 +236,39 @@ class MECRTree(object):
         import prettytable
 
         # build nice representation of rules
-        for i in range(len(self.rules)):
-            r = self.rules[i]
-            self.rules[i]["score"] = r["confidence"] * r["support"]
-        max_score = max([r["score"] for r in self.rules])
+        rules = self.rules
+        if filter_func is not None:
+            rules = [r for r in rules if filter_func(r)]
+        max_score = rules[0]["score"]
 
         pretty_rules = []
-        for rule in self.rules:
+        for rule in rules:
+            # if rule doesn't match the desired criteria, skip it
+            if filter_func is not None and not filter_func(rule):
+                continue
+
             # express score as proportion of maximum
-            rule["score"] = rule["score"] / max_score
+            pretty = {}
+            pretty["class"] = rule["class"]
+            pretty["confidence"] = rule["confidence"]
+            pretty["score"] = rule["score"] / max_score
+            pretty["support"] = rule["support"]
 
             # express rules in string representation
             conditions = []
             for k, v in rule["values"].items():
                 conditions.append("{k} is {v}".format(k=k, v=v))
-            rule["conditions"] = " and ".join(conditions)
+            pretty["conditions"] = " and ".join(conditions)
 
             # add rule to list
-            if (target_class is None or
-                    rule["class"] == target_class):
-                pretty_rules.append(rule)
+            pretty_rules.append(pretty)
 
-        pretty_rules = sorted(
-            pretty_rules,
-            key=lambda x: x["score"],
-            reverse=True
-        )
-
-        field_names = pretty_rules[0].keys()
-        tbl = prettytable.PrettyTable(field_names=field_names)
-        for rule in pretty_rules:
-            tbl.add_row(rule.values())
-        html = tbl.get_html_string()
+        html = None
+        if len(pretty_rules) > 0:
+            field_names = pretty_rules[0].keys()
+            tbl = prettytable.PrettyTable(field_names=field_names)
+            for pretty in pretty_rules:
+                tbl.add_row(pretty.values())
+            html = tbl.get_html_string()
 
         return html
