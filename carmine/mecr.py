@@ -239,7 +239,6 @@ class MECRTree(object):
         rules = self.rules
         if filter_func is not None:
             rules = [r for r in rules if filter_func(r)]
-        max_score = rules[0]["score"]
 
         pretty_rules = []
         for rule in rules:
@@ -251,7 +250,7 @@ class MECRTree(object):
             pretty = {}
             pretty["class"] = rule["class"]
             pretty["confidence"] = rule["confidence"]
-            pretty["score"] = rule["score"] / max_score
+            pretty["score"] = rule["score"]
             pretty["support"] = rule["support"]
 
             # express rules in string representation

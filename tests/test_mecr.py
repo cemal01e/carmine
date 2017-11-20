@@ -89,6 +89,25 @@ class TestMECRTree(unittest.TestCase):
         for rule in m.rules:
             self.assertGreaterEqual(rule["confidence"], min_confidence)
 
+    def test_get_rule_table(self):
+        min_confidence = 0.6
+        m = carmine.MECRTree(X, y)
+        m.train(0.25, min_confidence)
+        self.assertIsNotNone(m.rules)
+        self.assertGreater(len(m.rules), 0)
+        header = "<th>class</th>"
+        self.assertIn(header, m.get_rule_table())
+
+    def test_filter_rule_table(self):
+        def filter_func(x):
+            return (x["support"] == 0.375 and x["class"] == 1)
+        min_confidence = 0.6
+        m = carmine.MECRTree(X, y)
+        m.train(0.25, min_confidence)
+        self.assertIsNotNone(m.rules)
+        self.assertGreater(len(m.rules), 0)
+        self.assertEqual(len(m.get_rule_table(filter_func=filter_func)), 291)
+
 
 if __name__ == "__main__":
     unittest.main()
