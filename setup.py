@@ -20,7 +20,7 @@ with open("requirements.txt", "r") as reqs:
 setup(
     name="carmine",
 
-    version="0.1.0",
+    version="0.1.1",
 
     description="Association rule mining algorithms for Numpy and Pandas",
     long_description=long_description,

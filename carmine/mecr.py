@@ -20,14 +20,15 @@ Author:
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+from carmine.rule import Rule
 
 
 class CategoricalDataTransformer(object):
     def __init__(self, X, y):
-        self.X = X
-        self.y = y
-        self.n_objs = X.shape[0]
-        self.n_features = X.shape[1]
+        self.X = X.copy()
+        self.y = y.copy()
+        self.n_objs = self.X.shape[0]
+        self.n_features = self.X.shape[1]
         self.encoders = [LabelEncoder() for i in range(0, self.n_features)]
 
     def encode(self):
@@ -148,7 +149,6 @@ class MECRTree(object):
         else:
             n_features = self.X.shape[1]
             self.feature_names = np.arange(0, n_features)
-
         self.rules = None
 
     def _construct_root_node(self, X, y, min_support):
@@ -167,6 +167,27 @@ class MECRTree(object):
                     n.children.append(c)
         return n
 
+    def __score_rule(self, confidence, support):
+        return confidence * support
+
+    def _create_rule(self, values, classification, confidence, support):
+        rule = Rule()
+        notnan = ~values.mask
+        for i in range(0, len(values)):
+            if notnan[i]:
+                clause = (
+                    str(self.feature_names[i]),
+                    Rule.EQ,
+                    self.transformer.decode(i, values[i])
+                )
+                rule.add(clause)
+
+        return {
+            "class": classification,
+            "conditions": rule,
+            "score": self.__score_rule(confidence, support)
+        }
+
     def _mine(self, root, min_support, min_confidence):
         rules = []
         queue = [root]
@@ -176,25 +197,22 @@ class MECRTree(object):
                 # enumerate rules
                 if (len(l_i.children) == 0 and
                         (l_i.confidence >= min_confidence)):
-                    notnan = ~l_i.values.mask
-                    rule = {
-                        "values": {
-                            str(self.feature_names[i]):
-                            self.transformer.decode(i, l_i.values[i])
-                            for i in range(0, len(l_i.values)) if notnan[i]
-                        },
-                        "class": l_i.classification,
-                        "confidence": l_i.confidence,
-                        "score": l_i.confidence * l_i.support,
-                        "support": l_i.support
-                    }
-                    rules.append(rule)
+
+                    rules.append(
+                        self._create_rule(
+                            l_i.values,
+                            l_i.classification,
+                            l_i.confidence,
+                            l_i.support
+                        )
+                    )
+
                 for l_j in node.children[i+1:]:
                     child = l_i.create_child(l_j)
                     if child is not None and child.support >= min_support:
                         l_i.children.append(child)
+
                 queue.append(l_i)
-        rules = sorted(rules, key=lambda x: x["score"], reverse=True)
         return rules
 
     def train(self, min_support, min_confidence):
@@ -225,49 +243,3 @@ class MECRTree(object):
             list: A list of rules with class labels matching target_class.
         """
         return [rule for rule in self.rules if rule["class"] == target_class]
-
-    def get_rule_table(self, filter_func=None):
-        """
-        Return a nice HTML representation of all mined association rules.
-
-        Returns:
-            html: An HTML table containing all rules.
-        """
-        import prettytable
-
-        # build nice representation of rules
-        rules = self.rules
-        if filter_func is not None:
-            rules = [r for r in rules if filter_func(r)]
-
-        pretty_rules = []
-        for rule in rules:
-            # if rule doesn't match the desired criteria, skip it
-            if filter_func is not None and not filter_func(rule):
-                continue
-
-            # express score as proportion of maximum
-            pretty = {}
-            pretty["class"] = rule["class"]
-            pretty["confidence"] = rule["confidence"]
-            pretty["score"] = rule["score"]
-            pretty["support"] = rule["support"]
-
-            # express rules in string representation
-            conditions = []
-            for k, v in rule["values"].items():
-                conditions.append("{k} is {v}".format(k=k, v=v))
-            pretty["conditions"] = " and ".join(conditions)
-
-            # add rule to list
-            pretty_rules.append(pretty)
-
-        html = None
-        if len(pretty_rules) > 0:
-            field_names = pretty_rules[0].keys()
-            tbl = prettytable.PrettyTable(field_names=field_names)
-            for pretty in pretty_rules:
-                tbl.add_row(pretty.values())
-            html = tbl.get_html_string()
-
-        return html
