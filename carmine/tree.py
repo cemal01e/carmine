@@ -19,7 +19,7 @@ class DecisionTreeRuleExtractor(object):
         """
         return (1 - impurity) * (num_samples / self.total_samples)
 
-    def extract(self):
+    def extract(self, ignore_not_clauses=True):
         """
         Recursively extract classification rules from a decision tree.
         """
@@ -47,7 +47,8 @@ class DecisionTreeRuleExtractor(object):
                 rule_left.add((feature[0], Rule.NEQ, feature[1]))
                 __recurse(tree, left, rule_state=rule_left)
 
-            if right >= 0:
+            # ignore negation of leaf condition if option is set
+            if right >= 0 and ignore_not_clauses is False:
                 rule_right = rule_state.copy()
                 rule_right.add((feature[0], Rule.EQ, feature[1]))
                 __recurse(tree, right, rule_state=rule_right)
