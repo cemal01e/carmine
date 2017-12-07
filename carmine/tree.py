@@ -1,25 +1,29 @@
 # -*- coding: utf-8 -*-
 
 from carmine.rule import Rule
+from carmine.rule import RuleList
 
 
 class DecisionTreeRuleExtractor(object):
     def __init__(self, tree, features_values=None, class_names=None):
-        self.total_samples = tree.value.max(axis=2).reshape[0]
-        self.rules = self.extract(tree)
+        self.total_samples = tree.value.max(axis=2).reshape(-1)[0]
+        self.features_values = features_values
+        self.class_names = class_names
+        self.tree = tree
+        self.rules = self.extract()
 
     def _score_rule(self, impurity, num_samples):
         """
         Returns:
             :int: (node purity) * (fraction of dataset covered)
         """
-        return (1 - impurity) * (self.total_samples / num_samples)
+        return (1 - impurity) * (num_samples / self.total_samples)
 
     def extract(self):
         """
         Recursively extract classification rules from a decision tree.
         """
-        rules = []
+        rules = RuleList()
         classes = self.tree.value.argmax(axis=2).reshape(-1)
         samples = self.tree.value.max(axis=2).reshape(-1)
 
@@ -52,10 +56,10 @@ class DecisionTreeRuleExtractor(object):
             if len(rule_state) > 0:
                 rule = {
                     "class": class_,
-                    "conditions": rule_state.conditions,
+                    "conditions": rule_state,
                     "score": self._score_rule(impurity, samples[node])
                 }
-                rules.append(rule)
+                rules.add(rule)
 
         # start off recursion on the root node
         __recurse(self.tree, 0)

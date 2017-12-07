@@ -33,62 +33,54 @@ class Rule(object):
         return Rule(conditions=self.conditions)
 
 
-class RuleScorer(object):
-    # TODO: implement metrics
-    def __init__(self, metric="entropy"):
-        self.metric = metric
+class RuleList(object):
+    def __init__(self):
+        self.rules = []
 
-    def score(self, args):
-        return getattr(self, self.metric)(*args)
+    def add(self, rule):
+        self.rules.append(rule)
 
-    def entropy(self):
-        return -1.0
+    def to_list(self, filter_func=None):
+        # sort current rule state
+        rules = sorted(self.rules, key=lambda x: x["score"], reverse=True)
 
-    def confidence_support(self):
-        return -1.0
+        # filter rules according to function
+        if filter_func is not None:
+            rules = [r for r in rules if filter_func(r)]
 
+        pretty_rules = []
+        for rule in rules:
+            # if rule doesn't match the desired criteria, skip it
+            if filter_func is not None and not filter_func(rule):
+                continue
 
-def get_rule_table(rules, filter_func=None):
-    """
-    Return a nice HTML representation of all mined association rules.
+            # express score as proportion of maximum
+            pretty = {}
+            pretty["class"] = rule["class"]
+            pretty["score"] = rule["score"]
 
-    Returns:
-        html: An HTML table containing all rules.
-    """
-    import prettytable
+            # express rules in string representation
+            conditions = []
+            for key, value in rule["conditions"].conditions.items():
+                for clause in value:
+                    conditions.append("{k} {c} {v}".format(
+                            k=key, c=clause[0], v=clause[1]))
+            pretty["conditions"] = " and ".join(conditions)
 
-    # filter rules according to function
-    if filter_func is not None:
-        rules = [r for r in rules if filter_func(r)]
+            # add rule to list
+            pretty_rules.append(pretty)
+        return pretty_rules
 
-    pretty_rules = []
-    for rule in rules:
-        # if rule doesn't match the desired criteria, skip it
-        if filter_func is not None and not filter_func(rule):
-            continue
+    def to_html(self, filter_func=None):
+        """
+        Return a nice HTML representation of all rules in the rule set.
 
-        # express score as proportion of maximum
-        pretty = {}
-        pretty["class"] = rule["class"]
-        pretty["confidence"] = rule["confidence"]
-        pretty["score"] = rule["score"]
-        pretty["support"] = rule["support"]
+        Returns:
+            html: An HTML table containing all rules.
+        """
+        import pandas as pd
 
-        # express rules in string representation
-        conditions = []
-        for k, v in rule["conditions"].items():
-            conditions.append("{k} is {v}".format(k=k, v=v))
-        pretty["conditions"] = " and ".join(conditions)
+        pretty_rules = self.to_list(filter_func=filter_func)
+        df = pd.DataFrame(pretty_rules)
 
-        # add rule to list
-        pretty_rules.append(pretty)
-
-    html = None
-    if len(pretty_rules) > 0:
-        field_names = pretty_rules[0].keys()
-        tbl = prettytable.PrettyTable(field_names=field_names)
-        for pretty in pretty_rules:
-            tbl.add_row(pretty.values())
-        html = tbl.get_html_string()
-
-    return html
+        return df.to_html(index=None, justify="inherit")
