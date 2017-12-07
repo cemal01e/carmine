@@ -55,12 +55,9 @@ class DecisionTreeRuleExtractor(object):
 
             # if the current rule state has one or more conditions, add it
             if len(rule_state) > 0:
-                rule = {
-                    "class": class_,
-                    "conditions": rule_state,
-                    "score": self._score_rule(impurity, samples[node])
-                }
-                rules.add(rule)
+                rule_state.classification = class_
+                rule_state.score = self._score_rule(impurity, samples[node])
+                rules.add(rule_state)
 
         # start off recursion on the root node
         __recurse(self.tree, 0)

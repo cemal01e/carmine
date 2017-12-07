@@ -191,11 +191,12 @@ class MECRTree(object):
                 )
                 rule.add(clause)
 
-        return {
-            "class": self.class_names[classification],
-            "conditions": rule,
-            "score": self.__score_rule(confidence, support)
-        }
+        rule.classification = self.class_names[classification]
+        rule.score = self.__score_rule(confidence, support)
+        rule.confidence = confidence
+        rule.support = support
+
+        return rule
 
     def _mine(self, root, min_support, min_confidence):
         rules = RuleList()

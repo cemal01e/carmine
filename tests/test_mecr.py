@@ -61,14 +61,14 @@ class TestMECRTree(unittest.TestCase):
         self.assertIsNotNone(m.rules)
         self.assertGreater(len(m.rules), 0)
         for rule in m.rules:
-            features = list(rule["conditions"].conditions.keys())
+            features = list(rule.conditions.keys())
             for feature in features:
                 self.assertIn("feature ", feature)
 
     def test_multiple_conditions_in_rule(self):
         m = carmine.MECRTree(X, y)
         m.train(0.25, 0.6)
-        max_conditions = max([len(rule["conditions"]) for rule in m.rules])
+        max_conditions = max([len(rule) for rule in m.rules])
         self.assertGreater(max_conditions, 1)
 
     def test_min_support(self):
@@ -78,7 +78,7 @@ class TestMECRTree(unittest.TestCase):
         self.assertIsNotNone(m.rules)
         self.assertGreater(len(m.rules), 0)
         for rule in m.rules:
-            self.assertGreaterEqual(rule["support"], min_support)
+            self.assertGreaterEqual(rule.support, min_support)
 
     def test_min_confidence(self):
         min_confidence = 0.6
@@ -87,7 +87,7 @@ class TestMECRTree(unittest.TestCase):
         self.assertIsNotNone(m.rules)
         self.assertGreater(len(m.rules), 0)
         for rule in m.rules:
-            self.assertGreaterEqual(rule["confidence"], min_confidence)
+            self.assertGreaterEqual(rule.confidence, min_confidence)
 
 
 if __name__ == "__main__":

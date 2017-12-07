@@ -37,6 +37,22 @@ class RuleList(object):
     def __init__(self):
         self.rules = []
 
+    def __iter__(self):
+        for rule in self.rules:
+            yield rule
+
+    def __len__(self):
+        return len(self.rules)
+
+    def __getitem__(self, key):
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(msg="{item} has no attribute \"{key}\"".format(
+                    item=type(self),
+                    key=key
+                ))
+
     def add(self, rule):
         self.rules.append(rule)
 
@@ -61,7 +77,7 @@ class RuleList(object):
 
             # express rules in string representation
             conditions = []
-            for key, value in rule["conditions"].conditions.items():
+            for key, value in rule.conditions.items():
                 for clause in value:
                     conditions.append("{k} {c} {v}".format(
                             k=key, c=clause[0], v=clause[1]))
