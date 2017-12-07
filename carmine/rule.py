@@ -83,4 +83,6 @@ class RuleList(object):
         pretty_rules = self.to_list(filter_func=filter_func)
         df = pd.DataFrame(pretty_rules)
 
-        return df.to_html(index=None, justify="inherit")
+        # disable string truncation because pandas
+        with pd.option_context("display.max_colwidth", -1):
+            return df.to_html(index=None, justify="inherit")
