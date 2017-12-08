@@ -1,25 +1,11 @@
 import unittest
-import numpy as np
+
 from .context import carmine
+from .context import X
+from .context import y
+
 from carmine.mecr import Node
 from carmine.mecr import MECRTree
-
-
-# verification dataset from paper below
-# DOI: http://dx.doi.org/10.1016/j.eswa.2012.10.035
-dataset = np.array([
-    [1, 1, 1, 1],
-    [1, 2, 1, 0],
-    [2, 2, 1, 0],
-    [3, 3, 1, 1],
-    [3, 1, 2, 0],
-    [3, 3, 1, 1],
-    [1, 3, 2, 1],
-    [2, 2, 2, 0]
-])
-
-X = dataset[:, :-1]  # attributes / features
-y = dataset[:, -1]  # class labels
 
 
 class TestNode(unittest.TestCase):

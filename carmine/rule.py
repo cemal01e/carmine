@@ -8,6 +8,7 @@ class Rule(object):
     NEQ = "is not"
 
     def __init__(self, conditions={}):
+        self.score = 0.0
         self.conditions = defaultdict(set)
         for key, value in conditions.items():
             self.conditions[key] = set(value)
@@ -58,7 +59,7 @@ class RuleList(object):
 
     def to_list(self, filter_func=None):
         # sort current rule state
-        rules = sorted(self.rules, key=lambda x: x["score"], reverse=True)
+        rules = sorted(self.rules, key=lambda rule: rule.score, reverse=True)
 
         # filter rules according to function
         if filter_func is not None:
@@ -72,8 +73,8 @@ class RuleList(object):
 
             # express score as proportion of maximum
             pretty = {}
-            pretty["class"] = rule["class"]
-            pretty["score"] = rule["score"]
+            pretty["class"] = rule.classification
+            pretty["score"] = rule.score
 
             # express rules in string representation
             conditions = []
