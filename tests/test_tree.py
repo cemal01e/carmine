@@ -8,6 +8,7 @@ from .context import y
 class TestTreeExtraction(unittest.TestCase):
     def setUp(self):
         self.cls = carmine.DecisionTreeRuleExtractor(X, y)
+        self.cls.train()
 
     def test_extract_rules(self):
         # extract rules

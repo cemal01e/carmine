@@ -10,20 +10,19 @@ from carmine.rule import RuleList
 class DecisionTreeRuleExtractor(object):
     def __init__(self, X, y, feature_names=None,
                  include_negations=True, class_names=None):
+        # prepare dataset
         if not feature_names:
             feature_names = [str(i) for i in range(X.shape[1])]
-        X, y, fv = self._preprocess_dataset(X, y, feature_names)
+        self.X, self.y, fv = self._preprocess_dataset(X, y, feature_names)
         self.features_values = fv
-        self.tree = self._train_tree(X, y)
-        self.total_samples = self.tree.value.max(axis=2).reshape(-1)[0]
         self.class_names = class_names
-        self.rules = self.extract(include_negations)
+        self.include_negations = include_negations
 
     def __matrix_to_dict(self, X, feature_names):
         assert len(feature_names) == X.shape[1]
         for i in range(X.shape[0]):
             row = X[i, :]
-            d = {"feature {}".format(feature_names[j]): str(row[j])
+            d = {feature_names[j]: str(row[j])
                  for j in range(X.shape[1])}
             yield d
 
@@ -38,23 +37,22 @@ class DecisionTreeRuleExtractor(object):
 
         return (X, y, features_values)
 
-    def _train_tree(self, X, y):
-        tree = DecisionTreeClassifier(
-            criterion="gini",
-            splitter="best",
-            class_weight="balanced",
-            max_depth=10,
-            max_leaf_nodes=50
-        )
-        tree.fit(X, y)
-        return tree.tree_
-
     def _score_rule(self, impurity, num_samples):
         """
         Returns:
             :int: (node purity) * (fraction of dataset covered)
         """
         return (1 - impurity) * (num_samples / self.total_samples)
+
+    def train(self, **kwargs):
+        # construct decision tree
+        tree = DecisionTreeClassifier(**kwargs)
+        tree.fit(self.X, self.y)
+
+        # extract rules
+        self.tree = tree.tree_
+        self.total_samples = self.tree.value.max(axis=2).reshape(-1)[0]
+        self.rules = self.extract(self.include_negations)
 
     def extract(self, include_negations=True):
         """
