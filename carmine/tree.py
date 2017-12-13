@@ -1,16 +1,53 @@
 # -*- coding: utf-8 -*-
 
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.tree import DecisionTreeClassifier
+
 from carmine.rule import Rule
 from carmine.rule import RuleList
 
 
 class DecisionTreeRuleExtractor(object):
-    def __init__(self, tree, features_values=None, class_names=None):
-        self.total_samples = tree.value.max(axis=2).reshape(-1)[0]
-        self.features_values = features_values
+    def __init__(self, X, y, feature_names=None,
+                 include_negations=True, class_names=None):
+        if not feature_names:
+            feature_names = [str(i) for i in range(X.shape[1])]
+        X, y, fv = self._preprocess_dataset(X, y, feature_names)
+        self.features_values = fv
+        self.tree = self._train_tree(X, y)
+        self.total_samples = self.tree.value.max(axis=2).reshape(-1)[0]
         self.class_names = class_names
-        self.tree = tree
-        self.rules = self.extract()
+        self.rules = self.extract(include_negations)
+
+    def __matrix_to_dict(self, X, feature_names):
+        assert len(feature_names) == X.shape[1]
+        for i in range(X.shape[0]):
+            row = X[i, :]
+            d = {"feature {}".format(feature_names[j]): str(row[j])
+                 for j in range(X.shape[1])}
+            yield d
+
+    def _preprocess_dataset(self, X, y, feature_names):
+        dictionaries = list(self.__matrix_to_dict(X, feature_names))
+        dv = DictVectorizer(sparse=True)
+        X = dv.fit_transform(dictionaries)
+
+        # transform data
+        y = y.ravel()  # ensure data is 1-dimensional
+        features_values = [v.split("=") for v in dv.feature_names_]
+
+        return (X, y, features_values)
+
+    def _train_tree(self, X, y):
+        tree = DecisionTreeClassifier(
+            criterion="gini",
+            splitter="best",
+            class_weight="balanced",
+            max_depth=10,
+            max_leaf_nodes=50
+        )
+        tree.fit(X, y)
+        return tree.tree_
 
     def _score_rule(self, impurity, num_samples):
         """
