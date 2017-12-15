@@ -102,4 +102,4 @@ class RuleList(object):
 
         # disable string truncation because pandas
         with pd.option_context("display.max_colwidth", -1):
-            return df.to_html(index=None, justify="inherit")
+            return df.to_html(index=None, classes=["tbl", "display"])
