@@ -37,13 +37,6 @@ class DecisionTreeRuleExtractor(object):
 
         return (X, y, features_values)
 
-    def _score_rule(self, impurity, num_samples):
-        """
-        Returns:
-            :int: (node purity) * (fraction of dataset covered)
-        """
-        return (1 - impurity) * (num_samples / self.total_samples)
-
     def train(self, **kwargs):
         # construct decision tree
         tree = DecisionTreeClassifier(**kwargs)
@@ -95,7 +88,9 @@ class DecisionTreeRuleExtractor(object):
             # if the current rule state has one or more conditions, add it
             if len(rule_state) > 0:
                 rule_state.classification = class_
-                rule_state.score = self._score_rule(impurity, samples[node])
+                rule_state.purity = (1 - impurity)
+                rule_state.proportion = (samples[node] / self.total_samples)
+                rule_state.score = (rule_state.purity, rule_state.proportion)
                 rules.add(rule_state)
 
         # start off recursion on the root node

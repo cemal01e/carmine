@@ -8,7 +8,7 @@ class Rule(object):
     NEQ = "is not"
 
     def __init__(self, conditions={}):
-        self.score = 0.0
+        self.score = -float("inf")
         self.conditions = defaultdict(set)
         for key, value in conditions.items():
             self.conditions[key] = set(value)
@@ -74,7 +74,8 @@ class RuleList(object):
             # express score as proportion of maximum
             pretty = {}
             pretty["class"] = rule.classification
-            pretty["score"] = rule.score
+            pretty["purity"] = rule.purity
+            pretty["proportion"] = rule.proportion
 
             # express rules in string representation
             conditions = []

@@ -176,9 +176,6 @@ class MECRTree(object):
                     n.children.append(c)
         return n
 
-    def __score_rule(self, confidence, support):
-        return confidence * support
-
     def _create_rule(self, values, classification, confidence, support):
         rule = Rule()
         notnan = ~values.mask
@@ -190,11 +187,10 @@ class MECRTree(object):
                     self.transformer.decode(i, values[i])
                 )
                 rule.add(clause)
-
         rule.classification = self.class_names[classification]
-        rule.score = self.__score_rule(confidence, support)
-        rule.confidence = confidence
-        rule.support = support
+        rule.purity = confidence
+        rule.proportion = support
+        rule.score = (rule.purity, rule.proportion)
 
         return rule
 

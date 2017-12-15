@@ -66,7 +66,7 @@ class TestMECRTree(unittest.TestCase):
         self.assertIsNotNone(m.rules)
         self.assertGreater(len(m.rules), 0)
         for rule in m.rules:
-            self.assertGreaterEqual(rule.support, min_support)
+            self.assertGreaterEqual(rule.proportion, min_support)
 
     def test_min_confidence(self):
         min_confidence = 0.6
@@ -75,7 +75,7 @@ class TestMECRTree(unittest.TestCase):
         self.assertIsNotNone(m.rules)
         self.assertGreater(len(m.rules), 0)
         for rule in m.rules:
-            self.assertGreaterEqual(rule.confidence, min_confidence)
+            self.assertGreaterEqual(rule.purity, min_confidence)
 
 
 if __name__ == "__main__":

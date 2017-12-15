@@ -19,5 +19,6 @@ class TestTreeExtraction(unittest.TestCase):
         rules = self.cls.rules
         for rule in rules.to_list():
             self.assertIn(rule["class"], [0, 1])
-            self.assertGreaterEqual(rule["score"], 0)
             self.assertIn(" is ", rule["conditions"])
+            self.assertGreater(rule["purity"], 0)
+            self.assertGreater(rule["proportion"], 0)
