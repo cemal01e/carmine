@@ -57,6 +57,9 @@ class RuleList(object):
     def add(self, rule):
         self.rules.append(rule)
 
+    def merge(self, rule_list):
+        self.rules.extend(rule_list.rules)
+
     def to_list(self, filter_func=None):
         # sort current rule state
         rules = sorted(self.rules, key=lambda rule: rule.score, reverse=True)
