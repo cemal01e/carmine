@@ -108,6 +108,6 @@ class RuleList(object):
         with pd.option_context("display.max_colwidth", -1):
             return df.to_html(
                 index=None,
-                float_format="{:.2f}",
+                float_format=lambda f: "{0:.2f}".format(f),
                 classes=["tbl", "display"]
             )
