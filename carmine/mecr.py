@@ -190,6 +190,7 @@ class MECRTree(object):
         rule.classification = self.class_names[classification]
         rule.purity = confidence
         rule.proportion = support
+        rule.matches = confidence * support * self.X.shape[0]
         rule.score = (rule.purity, rule.proportion)
 
         return rule
