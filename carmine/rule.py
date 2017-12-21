@@ -106,10 +106,10 @@ class RuleList(object):
 
             # express some human-friendly quality metrics
             pretty = {}
-            pretty["total"] = int(math.ceil(rule.matches))
-            pretty["invalid"] = int(math.ceil(rule.purity * rule.matches))
-            pretty["valid"] = pretty["total"] - pretty["invalid"]
-            pretty["invalid %"] = int(round(rule.purity * 100))
+            pretty["class"] = rule.classification
+            pretty["purity"] = rule.purity
+            pretty["proportion"] = rule.proportion
+            pretty["matches"] = int(math.ceil(rule.matches))
 
             # express rules in string representation
             conditions = []
@@ -135,8 +135,19 @@ class RuleList(object):
         """
         import pandas as pd
 
-        pretty_rules = self.to_list(filter_func=filter_func)
-        df = pd.DataFrame(pretty_rules)
+        human_readable_rules = []
+        for r in self.to_list(filter_func=filter_func):
+            invalid = int(math.floor(r["purity"] * r["matches"]))
+            hr_rule = {
+                "conditions": r["conditions"],
+                "total": r["matches"],
+                "invalid": invalid,
+                "valid": r["matches"] - invalid,
+                "invalid %": int(round(r["purity"] * 100.0))
+            }
+            human_readable_rules.append(hr_rule)
+
+        df = pd.DataFrame(human_readable_rules)
 
         if len(df) > 0:
             df = df[["conditions", "invalid %", "invalid", "valid", "total"]]
