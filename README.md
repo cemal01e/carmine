@@ -1,11 +1,11 @@
 # Carmine
 
-[![Build Status](https://travis-ci.org/newey01c/carmine.svg?branch=master)][1]
+[![Build Status](https://travis-ci.org/FlightDataServices/carmine.svg?branch=master)][1]
 
 Carmine is a Class Association Rule discovery framework, aiming to implement
 various fast mining algorithms in Python.
 
-[1]: https://travis-ci.org/newey01c/carmine
+[1]: https://travis-ci.org/FlightDataServices/carmine
 
 
 ## Background
