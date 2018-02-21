@@ -21,7 +21,8 @@ class PrimeMBA(object):
 
         if feature_names is None:
             n_features = X.shape[1]
-            feature_names = np.arange(0, n_features)
+            feature_names = np.arange(0, n_features)\
+                    .astype(str).tolist()
         feature_names.append("y")
 
 
@@ -109,7 +110,6 @@ class PrimeMBA(object):
         prime_list, F_unique = self._primes_and_unique_list()
 
         prod = self._calc_prod(prime_list, F_unique)
-        print(prod)
 
         r1 = pd.DataFrame(data=prime_list, columns=["id"])
 
