@@ -74,7 +74,7 @@ class Node(object):
             self.matches = set(matches)
 
         # create masked array to hold class values
-        self.values = np.ma.zeros(shape=self.n_feats, dtype="int32")
+        self.values = np.ma.zeros(self.n_feats, dtype="int32")
         self.values.mask = True
 
         # compute classes and counts
