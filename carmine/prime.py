@@ -49,6 +49,28 @@ class PrimeMBA(object):
 
         return prime_list, F_unique
 
+    def _replace_with_prime(self, df):
+        """
+        This function does the same as
+        df.replace(to_replace=prime_list, value=F_unique)
+        however, it is much faster because it works one column at a time.
+        """
+        new_df = df.copy()
+        n_start=1
+        for col in df:
+            uniq= df[col].unique()
+            n_end = n_start + len(uniq)
+            start_prime = sympy.prime(n_start)
+            n_start = n_end
+            end_prime = sympy.prime(n_end)
+            col_prime_list = [x for x in sympy.primerange(start_prime-1,end_prime)]
+            primedict={}
+            for i in range(len(col_prime_list)):
+                primedict[uniq[i]]=col_prime_list[i]
+            new_df[col] = df.loc[:,col].map(lambda x : primedict.get(x))
+        return new_df
+
+
     def _calc_prod(self, prime_list, F_unique):
         df = self.data.copy()
         df = df.astype(str)
@@ -56,7 +78,7 @@ class PrimeMBA(object):
             df[column]= column + '=' + df[column]
 
         # TODO: Why is this the replacing so slow!!!
-        df = df.replace(to_replace=F_unique,value=prime_list)
+        df = self._replace_with_prime(df)
         #TODO: is it ok to define a self. something here?
         self.primed_data = df
 
