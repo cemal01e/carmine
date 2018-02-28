@@ -1,0 +1,6 @@
+include *.py LICENSE
+recursive-include carmine *.py
+recursive-include tests *.py
+prune carmine.egg-info
+exclude build dist
+global-exclude *.py[co] .*.sw?
