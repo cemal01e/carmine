@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
+
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.tree import DecisionTreeClassifier
 
-from carmine.rule import Rule
-from carmine.rule import RuleList
+from .rule import Rule, RuleList
 
 
 class DecisionTreeRuleExtractor(object):

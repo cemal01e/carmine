@@ -17,11 +17,12 @@ Recommended reading:
 Author:
     Charles Newey <charlie.newey@flightdataservices.com>, 2017
 """
+from __future__ import absolute_import
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-from carmine.rule import Rule
-from carmine.rule import RuleList
+from .rule import Rule, RuleList
 
 
 class CategoricalDataTransformer(object):

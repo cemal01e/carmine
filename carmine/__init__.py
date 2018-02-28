@@ -1,5 +1,6 @@
-from carmine.mecr import MECRTree
-from carmine.prime import PrimeMBA
-from carmine.rule import Rule
-from carmine.rule import RuleList
-from carmine.tree import DecisionTreeRuleExtractor
+from __future__ import absolute_import
+
+from .mecr import MECRTree
+from .prime import PrimeMBA
+from .rule import Rule, RuleList
+from .tree import DecisionTreeRuleExtractor
