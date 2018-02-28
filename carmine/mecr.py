@@ -66,7 +66,8 @@ class Node(object):
         self.y = y
 
         # compute number of objects and features in dataset
-        self.n_objs, self.n_feats = X.shape
+        self.n_objs = float(X.shape[0])
+        self.n_feats = X.shape[1]
 
         # compute matching object indices and values
         if matches is None:
@@ -128,10 +129,12 @@ class Node(object):
 
     @property
     def actual_occurrence(self):
-        return len(self.matches)
+        return float(len(self.matches))
 
     @property
     def support(self):
+        print(self.counts)
+        print(self.n_objs)
         return np.max(self.counts) / self.n_objs
 
 
@@ -175,6 +178,8 @@ class MECRTree(object):
                 c.values[feat] = value
                 if c.support >= min_support:
                     n.children.append(c)
+
+        print(n.children)
         return n
 
     def _create_rule(self, values, classification, confidence, support):
