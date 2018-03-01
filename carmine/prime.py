@@ -153,13 +153,14 @@ class PrimeMBA(object):
         elif depth == 2:
             new_ids = self._ids_for_r2(r1, optimise_y_true)
             r2 = pd.DataFrame(data=new_ids)
-            r2["id"] = r2.prod(axis=1)
-            r2=r2.replace(to_replace=prime_list, value=F_unique)
-            r2["rule"] = r2[0] + " and " +  r2[1]
-            r2 = r2.drop(columns=[0, 1])
-            r2["depth"] = 2
-            r2 = self._MBA_calc(r2, prod, id_event)
-            self.rule_df = pd.concat([r1, r2], ignore_index=True)
+            if not r2.empty:
+                r2["id"] = r2.prod(axis=1)
+                r2=r2.replace(to_replace=prime_list, value=F_unique)
+                r2["rule"] = r2[0] + " and " +  r2[1]
+                r2 = r2.drop(columns=[0, 1])
+                r2["depth"] = 2
+                r2 = self._MBA_calc(r2, prod, id_event)
+                self.rule_df = pd.concat([r1, r2], ignore_index=True)
         else:
             # TODO: not supported!
             pass
