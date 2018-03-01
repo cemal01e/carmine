@@ -71,8 +71,7 @@ class Node(object):
         self.y = y
 
         # compute number of objects and features in dataset
-        self.n_objs = float(X.shape[0])
-        self.n_feats = X.shape[1]
+        self.n_objs, self.n_feats = X.shape
 
         # compute matching object indices and values
         if matches is None:
@@ -134,12 +133,10 @@ class Node(object):
 
     @property
     def actual_occurrence(self):
-        return float(len(self.matches))
+        return len(self.matches)
 
     @property
     def support(self):
-        print(self.counts)
-        print(self.n_objs)
         return np.max(self.counts) / self.n_objs
 
 
