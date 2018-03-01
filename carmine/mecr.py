@@ -17,12 +17,17 @@ Recommended reading:
 Author:
     Charles Newey <charlie.newey@flightdataservices.com>, 2017
 """
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals
+)
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-from .rule import Rule, RuleList
+from carmine.rule import Rule, RuleList
 
 
 class CategoricalDataTransformer(object):
@@ -175,6 +180,8 @@ class MECRTree(object):
                 c.values[feat] = value
                 if c.support >= min_support:
                     n.children.append(c)
+
+        print(n.children)
         return n
 
     def _create_rule(self, values, classification, confidence, support):
