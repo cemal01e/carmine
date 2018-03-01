@@ -19,7 +19,7 @@ with open('requirements.txt', 'r') as reqs:
 
 setup(
     name='carmine',
-    version='0.1.1',
+    version='0.1.2',
     description='Association rule mining algorithms for Numpy and Pandas',
     long_description=long_description,
     url='https://github.com/pypa/sampleproject',
