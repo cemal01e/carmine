@@ -6,6 +6,7 @@ from __future__ import (
 )
 
 from .mecr import MECRTree
+from .parma import Parma
 from .prime import PrimeMBA
 from .rule import Rule, RuleList
 from .tree import DecisionTreeRuleExtractor
