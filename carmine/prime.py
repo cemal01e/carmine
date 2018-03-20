@@ -119,20 +119,17 @@ class PrimeMBA(object):
         """
 
         df_primed = self._replace_with_prime()
-        print(df_primed.head())
         prod = df_primed.prod(axis=1)
-        print(prod.head())
-        print((prod>0).all())
         self.primed_data = df_primed
-        prime_list = self.prime_dict.values()
-        value_list = self.prime_dict.keys()
+        prime_list = np.array(self.prime_dict.values())
+        value_list = np.array(self.prime_dict.keys())
 
         r1 = pd.DataFrame(data=prime_list, columns=["id"])
 
         r1["rule"] = r1["id"].replace(to_replace=prime_list, value=value_list)
         r1["depth"] = 1
 
-        id_event = np.array(prime_list)[value_list=="y=True"][0]
+        id_event = prime_list[value_list=="y=True"][0]
 
         r1 = self._MBA_calc(r1, prod, id_event)
         if depth ==1:
