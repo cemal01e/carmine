@@ -121,8 +121,8 @@ class PrimeMBA(object):
         df_primed = self._replace_with_prime()
         prod = df_primed.prod(axis=1)
         self.primed_data = df_primed
-        prime_list = np.array(self.prime_dict.values())
-        value_list = np.array(self.prime_dict.keys())
+        prime_list = np.array(list(self.prime_dict.values()))
+        value_list = np.array(list(self.prime_dict.keys()))
 
         r1 = pd.DataFrame(data=prime_list, columns=["id"])
 

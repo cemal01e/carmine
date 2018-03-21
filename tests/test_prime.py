@@ -25,8 +25,8 @@ class Test_PrimeMBA(unittest.TestCase):
         df_primed = m._replace_with_prime()
         prod = df_primed.prod(axis=1)
         m.primed_data = df_primed
-        prime_list = np.array(m.prime_dict.values())
-        value_list = np.array(m.prime_dict.keys())
+        prime_list = np.array(list(m.prime_dict.values()))
+        value_list = np.array(list(m.prime_dict.keys()))
 
         r1 = pd.DataFrame(data=prime_list, columns=["id"])
 
@@ -53,8 +53,8 @@ class Test_PrimeMBA(unittest.TestCase):
         df_primed = m._replace_with_prime()
         prod = df_primed.prod(axis=1)
         m.primed_data = df_primed
-        prime_list = np.array(m.prime_dict.values())
-        value_list = np.array(m.prime_dict.keys())
+        prime_list = np.array(list(m.prime_dict.values()))
+        value_list = np.array(list(m.prime_dict.keys()))
 
         r1 = pd.DataFrame(data=prime_list, columns=["id"])
         r1["rule"] = r1["id"].replace(to_replace=prime_list, value=value_list)
