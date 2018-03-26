@@ -27,6 +27,25 @@ class Test_Parma(unittest.TestCase):
 
         self.assertFalse(df.empty)
 
+    def test_clean(self):
+        m =Parma(X, y)
+        m.train()
+        m.clean()
+        df = m.rule_df
+        expected_cols = ["support(x)",
+                         "matches(x)",
+                         "support(x,y)",
+                         "confidence(x,y)",
+                         "itemset",
+                         "lift(x,y)",
+                         "equivalent_sets",
+                        ]
+
+        for x in expected_cols:
+            self.assertIn(x, df.columns.values.tolist())
+
+        self.assertFalse(df.empty)
+
 
 
 

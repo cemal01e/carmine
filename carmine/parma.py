@@ -43,13 +43,12 @@ class Parma(object):
         self.data = data
 
         self.rule_df = None
+        self.data_cleaned = False
 
     def train(self):
         """
-        Calculate the matches(x), support(x), support(x,y), confidence(x,y), and lift(x,y)
-
-        :returns: returns a dataframe with association rules and their relevant metrics
-        :rtype: pd.DataFrame
+        Calculate the matches(x), support(x), support(x,y), confidence(x,y), and lift(x,y).
+        Calculated rules will be stored in rule_df.
         """
         df = self.data.copy()
         result = pd.DataFrame(columns=["count", "mean"])
@@ -83,4 +82,40 @@ class Parma(object):
         result = result.loc[:, ["itemset", "matches(x)", "support(x)",
                                 "support(x,y)", "confidence(x,y)", "lift(x,y)"]]
         self.rule_df = result
+
+
+    def clean(self):
+        """
+        Clean rules_df. Remove equivalent rules, and create an equivalent rules column
+        where we will store the equivalent rules. If cleaning has been done, the data_cleaned
+        property will state True.
+        """
+
+        if self.rule_df is None or self.rule_df.empty:
+            print('There are no rules. Have you trained before you clean the rules?')
+            self.data_cleaned = True
+
+        df = self.rule_df.copy()
+        df['sets']=df['itemset'].apply(lambda x: set(x.replace(')(','),(').split(',')))
+        df['sets'].iloc[0].issubset(df['sets'].iloc[2])
+        df = df.reset_index()
+
+        df['hash'] = df['support(x)'].astype(str) + ',' + df['confidence(x,y)'].astype(str)
+        df['equivalent_index'] = None
+        df['equivalent_sets'] = None
+
+
+        for i in df['hash'].unique():
+            b = df.loc[df['hash']==i,['index','sets']]
+            b.loc[:,'equivalent_index'] = b.loc[:,'sets'].apply(lambda x: b.loc[b.loc[:,'sets']>x,'index'].values.tolist())
+            b.loc[:,'equivalent_sets'] = b.loc[:,'sets'].apply(lambda x: b.loc[b.loc[:,'sets']>x,'sets'].values.tolist() )
+            df.loc[df['hash']==i,['equivalent_index', 'equivalent_sets']] = b
+
+        index_to_delete = np.unique(np.hstack(df['equivalent_index'].values))
+        before_length = df.shape[0]
+        df = df.drop(index_to_delete)
+        df = df.drop(columns=['index', 'equivalent_index','sets','hash'])
+        print('Rules have been reduced from {} rows to {} rows'.format(before_length, df.shape[0]))
+        self.rule_df = df
+        self.data_cleaned = True
 
