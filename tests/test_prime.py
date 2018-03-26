@@ -63,7 +63,7 @@ class Test_PrimeMBA(unittest.TestCase):
         id_event = prime_list[value_list=="y=True"][0]
         r1 = m._MBA_calc(r1, prod, id_event)
 
-        new_ids = m._ids_for_r2(r1, True)
+        new_ids = m._ids_for_r2(r1, filter_ids=True)
 
         self.assertIsNotNone(new_ids)
         self.assertGreater(len(new_ids), 0)

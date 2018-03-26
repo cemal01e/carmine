@@ -83,7 +83,7 @@ class PrimeMBA(object):
     def _ids_for_r2(self, r1, filter_ids=True):
 
         # For speed, you might want to consider only cases where an event has occured for depth 2
-        ids_for_depth2 = r1[r1["confidence (X -> Event)"] > 0]["id"]
+        ids_for_depth2 = r1[r1["confidence (X -> Event)"] > 0]["id"].values.tolist()
 
         uniqe_column_list_of_lists = []
         for col in self.primed_data.iloc[:,:-1]:  # we dont want column "y" to be added into this
@@ -135,7 +135,7 @@ class PrimeMBA(object):
         if depth ==1:
             self.rule_df = r1
         elif depth == 2:
-            new_ids = self._ids_for_r2(r1, optimise_y_true)
+            new_ids = self._ids_for_r2(r1, filter_ids=optimise_y_true)
             r2 = pd.DataFrame(data=new_ids)
             if not r2.empty:
                 r2["id"] = r2.prod(axis=1)
