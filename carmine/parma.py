@@ -43,6 +43,7 @@ class Parma(object):
         self.data = data
 
         self.rule_df = None
+        self.rule_df_uncleaned = None
         self.data_cleaned = False
 
     def train(self):
@@ -82,20 +83,29 @@ class Parma(object):
         result = result.loc[:, ["itemset", "matches(x)", "support(x)",
                                 "support(x,y)", "confidence(x,y)", "lift(x,y)"]]
         self.rule_df = result
+        self.rule_df_uncleaned = result.copy()
 
-
-    def clean(self):
+    def clean(self, min_matches=None, min_support=None, min_confidence=None):
         """
         Clean rules_df. Remove equivalent rules, and create an equivalent rules column
         where we will store the equivalent rules. If cleaning has been done, the data_cleaned
         property will state True.
         """
 
-        if self.rule_df is None or self.rule_df.empty:
+        if self.rule_df_uncleaned is None or self.rule_df_uncleaned.empty:
             print('There are no rules. Have you trained before you clean the rules?')
             self.data_cleaned = True
 
-        df = self.rule_df.copy()
+        df = self.rule_df_uncleaned.copy()
+
+        # filter based on support and confidence
+        if min_support:
+            df = df.loc[df['support(x)'] >= min_support, :].reset_index(drop=True)
+        if min_confidence:
+            df = df.loc[df['confidence(x,y)'] >= min_confidence, :].reset_index(drop=True)
+        if min_matches:
+            df = df.loc[df['matches(x)'] >= min_matches, :].reset_index(drop=True)
+
         df['sets']=df['itemset'].apply(lambda x: set(x.replace(')(','),(').split(',')))
         df['sets'].iloc[0].issubset(df['sets'].iloc[2])
         df = df.reset_index()
@@ -116,6 +126,7 @@ class Parma(object):
         df = df.drop(index_to_delete)
         df = df.drop(columns=['index', 'equivalent_index','sets','hash'])
         print('Rules have been reduced from {} rows to {} rows'.format(before_length, df.shape[0]))
-        self.rule_df = df
+        df = df.reset_index(drop=True)
+        self.rule_df = df.copy()
         self.data_cleaned = True
 
