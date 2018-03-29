@@ -11,32 +11,30 @@ from carmine.prime import PrimeMBA
 
 class Test_PrimeMBA(unittest.TestCase):
 
-    def test_primes_and_unique_list(self):
+    def test_replace_with_prime(self):
         m = PrimeMBA(X, y)
-        prime_list, F_unique = m._primes_and_unique_list()
-        self.assertIsNotNone(prime_list)
-        self.assertIsNotNone(prime_list)
-        self.assertGreater(len(prime_list), 0)
-        self.assertGreater(len(F_unique), 0)
-        self.assertIsInstance(prime_list, list)
-        self.assertIsInstance(F_unique, np.ndarray)
-
-    def test_calc_prod(self):
-        m = PrimeMBA(X, y)
-        prime_list, F_unique = m._primes_and_unique_list()
-        prod = m._calc_prod(prime_list, F_unique)
-        self.assertIsInstance(prod, pd.Series)
-        self.assertEqual(prod.shape[0], X.shape[0])
+        df_primed = m._replace_with_prime()
+        self.assertIsNotNone(df_primed)
+        self.assertEqual(df_primed.shape[0], X.shape[0])
+        self.assertEqual(df_primed.shape[1], X.shape[1] + 1)
+        self.assertEqual(df_primed.shape, m.data.shape)
+        self.assertIsInstance(df_primed, pd.DataFrame)
 
     def test_MBA_calc(self):
         m = PrimeMBA(X, y)
-        prime_list, F_unique = m._primes_and_unique_list()
-        prod = m._calc_prod(prime_list, F_unique)
+        df_primed = m._replace_with_prime()
+        prod = df_primed.prod(axis=1)
+        m.primed_data = df_primed
+        prime_list = np.array(list(m.prime_dict.values()))
+        value_list = np.array(list(m.prime_dict.keys()))
+
         r1 = pd.DataFrame(data=prime_list, columns=["id"])
-        r1["rule"] = r1["id"].replace(to_replace=prime_list,
-                                      value=F_unique)
+
+        r1["rule"] = r1["id"].replace(to_replace=prime_list, value=value_list)
         r1["depth"] = 1
-        id_event = np.array(prime_list)[F_unique=="y=True"][0]
+
+        id_event = prime_list[value_list=="y=True"][0]
+
         r1 = m._MBA_calc(r1, prod, id_event)
 
         self.assertIsNotNone(r1)
@@ -52,16 +50,20 @@ class Test_PrimeMBA(unittest.TestCase):
 
     def test_ids_for_r2(self):
         m = PrimeMBA(X, y)
-        prime_list, F_unique = m._primes_and_unique_list()
-        prod = m._calc_prod(prime_list, F_unique)
+        df_primed = m._replace_with_prime()
+        prod = df_primed.prod(axis=1)
+        m.primed_data = df_primed
+        prime_list = np.array(list(m.prime_dict.values()))
+        value_list = np.array(list(m.prime_dict.keys()))
+
         r1 = pd.DataFrame(data=prime_list, columns=["id"])
-        r1["rule"] = r1["id"].replace(to_replace=prime_list,
-                                      value=F_unique)
+        r1["rule"] = r1["id"].replace(to_replace=prime_list, value=value_list)
         r1["depth"] = 1
-        id_event = np.array(prime_list)[F_unique=="y=True"][0]
+
+        id_event = prime_list[value_list=="y=True"][0]
         r1 = m._MBA_calc(r1, prod, id_event)
 
-        new_ids = m._ids_for_r2(r1, True)
+        new_ids = m._ids_for_r2(r1, filter_ids=True)
 
         self.assertIsNotNone(new_ids)
         self.assertGreater(len(new_ids), 0)

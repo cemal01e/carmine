@@ -37,32 +37,24 @@ class PrimeMBA(object):
         data["y"] = data["y"].astype(bool)
         self.data = data
         self.primed_data = data
+        self.prime_dict = {}
         self.rule_df = None
 
-    def _primes_and_unique_list(self):
+    def _replace_with_prime(self):
+        """
+        This function does the same as
+        df.replace(to_replace=prime_list, value=value_list)
+        however, it is much faster because it works one column at a time.
+        """
         df = self.data.copy()
+
+        #prep for replacement
         df = df.astype(str)
         for column in df:
             df[column]= column + '=' + df[column]
 
-        F = df.as_matrix()
-        F_unique = np.unique(F)
-
-
-        n = F_unique.size
-        nth = sympy.prime(n)
-
-        prime_list = [x for x in sympy.primerange(0,nth+1)]
-
-        return prime_list, F_unique
-
-    def _replace_with_prime(self, df):
-        """
-        This function does the same as
-        df.replace(to_replace=prime_list, value=F_unique)
-        however, it is much faster because it works one column at a time.
-        """
         new_df = df.copy()
+
         n_start=1
         for col in df:
             uniq= df[col].unique()
@@ -74,22 +66,11 @@ class PrimeMBA(object):
             primedict={}
             for i in range(len(col_prime_list)):
                 primedict[uniq[i]]=col_prime_list[i]
+            # store these in global prime dict
+            self.prime_dict.update(primedict)
             new_df[col] = df.loc[:,col].map(lambda x : primedict.get(x))
         return new_df
 
-
-    def _calc_prod(self, prime_list, F_unique):
-        df = self.data.copy()
-        df = df.astype(str)
-        for column in df:
-            df[column]= column + '=' + df[column]
-
-        # TODO: Why is this the replacing so slow!!!
-        df = self._replace_with_prime(df)
-        #TODO: is it ok to define a self. something here?
-        self.primed_data = df
-
-        return df.prod(axis=1)
 
     def _MBA_calc(self, dataframe, prod, id_event):
         df = dataframe.copy()
@@ -102,7 +83,7 @@ class PrimeMBA(object):
     def _ids_for_r2(self, r1, filter_ids=True):
 
         # For speed, you might want to consider only cases where an event has occured for depth 2
-        ids_for_depth2 = r1[r1["confidence (X -> Event)"] > 0]["id"]
+        ids_for_depth2 = r1[r1["confidence (X -> Event)"] > 0]["id"].values.tolist()
 
         uniqe_column_list_of_lists = []
         for col in self.primed_data.iloc[:,:-1]:  # we dont want column "y" to be added into this
@@ -136,26 +117,29 @@ class PrimeMBA(object):
         :type optimise_y_true: bool
 
         """
-        prime_list, F_unique = self._primes_and_unique_list()
 
-        prod = self._calc_prod(prime_list, F_unique)
+        df_primed = self._replace_with_prime()
+        prod = df_primed.prod(axis=1)
+        self.primed_data = df_primed
+        prime_list = np.array(list(self.prime_dict.values()))
+        value_list = np.array(list(self.prime_dict.keys()))
 
         r1 = pd.DataFrame(data=prime_list, columns=["id"])
 
-        r1["rule"] = r1["id"].replace(to_replace=prime_list, value=F_unique)
+        r1["rule"] = r1["id"].replace(to_replace=prime_list, value=value_list)
         r1["depth"] = 1
 
-        id_event = np.array(prime_list)[F_unique=="y=True"][0]
+        id_event = prime_list[value_list=="y=True"][0]
 
         r1 = self._MBA_calc(r1, prod, id_event)
         if depth ==1:
             self.rule_df = r1
         elif depth == 2:
-            new_ids = self._ids_for_r2(r1, optimise_y_true)
+            new_ids = self._ids_for_r2(r1, filter_ids=optimise_y_true)
             r2 = pd.DataFrame(data=new_ids)
             if not r2.empty:
                 r2["id"] = r2.prod(axis=1)
-                r2=r2.replace(to_replace=prime_list, value=F_unique)
+                r2=r2.replace(to_replace=prime_list, value=value_list)
                 r2["rule"] = r2[0] + " and " +  r2[1]
                 r2 = r2.drop(columns=[0, 1])
                 r2["depth"] = 2
