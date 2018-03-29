@@ -5,7 +5,7 @@ PARMA
 Panda Association Rule Mining Algorithm
 
 An implementation of association rule mining
-relying on pandas group by functions
+relying on pandas group by functions.
 
 Author:
     Eron Cemal <eron.cemal@flightdataservices.com>, 2018
@@ -23,11 +23,7 @@ import pandas as pd
 
 
 class Parma(object):
-    """
-    This is a novel implementation of MBA using prime numbers
-    """
     def __init__(self, X, y, feature_names=None):
-
         Z = np.hstack((X, y[:, None]))
 
         if feature_names is None:
@@ -35,7 +31,6 @@ class Parma(object):
             feature_names = np.arange(0, n_features)\
                     .astype(str).tolist()
         feature_names.append("y")
-
 
         data = pd.DataFrame(data=Z, columns=feature_names)
         # TODO: Do we want to force it that y is bool? Assert it maybe?
@@ -59,7 +54,7 @@ class Parma(object):
             for j in itertools.combinations(df.columns[:-1], i):
                 column_combinations.append(j)
 
-        # caclute #matches and confidence for each column combination
+        # calculate #matches and confidence for each column combination
         for column_combination in column_combinations:
             aggregated_df = df.groupby(by=column_combination)["y"]\
                     .agg(["count", "mean"]).reset_index()
@@ -70,7 +65,6 @@ class Parma(object):
             subresult = pd.concat([association_rules_df.sum(axis=1),
                                    aggregated_df.iloc[:, -2:]], axis=1)
             result = pd.concat([result, subresult], axis=0, ignore_index=True)
-
 
         #tidy result + add support and lift
         result = result.rename(columns={0:"itemset",
@@ -91,7 +85,6 @@ class Parma(object):
         where we will store the equivalent rules. If cleaning has been done, the data_cleaned
         property will state True.
         """
-
         if self.rule_df_uncleaned is None or self.rule_df_uncleaned.empty:
             print('There are no rules. Have you trained before you clean the rules?')
             self.data_cleaned = True
@@ -114,7 +107,6 @@ class Parma(object):
         df['equivalent_index'] = None
         df['equivalent_sets'] = None
 
-
         for i in df['hash'].unique():
             b = df.loc[df['hash']==i,['index','sets']]
             b.loc[:,'equivalent_index'] = b.loc[:,'sets'].apply(lambda x: b.loc[b.loc[:,'sets']>x,'index'].values.tolist())
@@ -129,4 +121,3 @@ class Parma(object):
         df = df.reset_index(drop=True)
         self.rule_df = df.copy()
         self.data_cleaned = True
-
