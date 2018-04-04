@@ -26,11 +26,15 @@ class Parma(object):
     """
     This is a novel implementation of MBA using pandas groupby
     """
-    def __init__(self, X, Y, feature_names=None, y_col_names=None):
+    def __init__(self, X, Y=None, y=None, feature_names=None, y_col_names=None):
 
         # TODO: Instead of giving X and Y, it should be possible to just
         # supply data and the column names. Currently, I usualy start from
         # data, but break it down to X and Y, then rejoin it in __init__
+
+        # for backwards compatibility
+        if Y is None:
+            Y=y
 
         # if pd.series or np.array, convert to list
         if feature_names is not None and not isinstance(feature_names, list):
