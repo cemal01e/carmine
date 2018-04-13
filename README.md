@@ -25,7 +25,20 @@ article][2]).
 
 ## Algorithms
 
-Currently there's only one algorithm implemented - the MECR tree.
+Currently there's three different algorithms implemented:
+- Parma (recommended)
+- MECR Tree
+- PrimeMBA
+
+
+### Parma (recommended):
+
+Parma stands for Pandas Association Rule Mining Algorithm. It relies on Pandas'
+groupby() functions mean and count aggregations. These metrics are then converted
+into the familiar Market Basket Analysis(MBA) terms such as support, confidence,
+and lift. Out of all the other algorithms in this package, we have found this to
+be the most efficient. However, it is unclear if with really large data sizes
+this could change.
 
 
 ### MECR Tree
@@ -43,3 +56,11 @@ high-quality decision rules.
 2.) "An Efficient Algorithm for Mining Class-Association Rules"
     Nguyen, Vo, Hong, Thanh. (Expert Systems with Applications, 2013).
     DOI: http://dx.doi.org/10.1016/j.eswa.2012.10.035
+
+### PrimeMBA
+
+PrimeMBA converts maps each tpye of item in the dataset to a prime number.
+It then takes a product of all itemsets. If we want to know if item $$x_{i}$$
+exists in the dataset, we simply divide this product by the unique identifier of that item
+$$p_i{}$$. This algorthim only calculates association rules up to length two example: 
+(bread, milk)-> (eggs)
