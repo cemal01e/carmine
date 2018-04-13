@@ -60,7 +60,7 @@ high-quality decision rules.
 ### PrimeMBA
 
 PrimeMBA converts maps each tpye of item in the dataset to a prime number.
-It then takes a product of all itemsets. If we want to know if item $$x_{i}$$
+It then takes a product of all itemsets. If we want to know if item x<sub>i</sub>
 exists in the dataset, we simply divide this product by the unique identifier of that item
-$$p_i{}$$. This algorthim only calculates association rules up to length two example: 
+p<sub>i</sub>. This algorthim only calculates association rules up to length two example: 
 (bread, milk)-> (eggs)
